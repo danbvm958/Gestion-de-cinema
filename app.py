@@ -35,6 +35,7 @@ def load_data():
     conn.close()
     return films
 
+
 def main():
     option = 0
     while option != 8:
