@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Accueil</title>
+</head>
+<body>
+    <h1>Bienvenue sur la page d'accueil</h1>
+    <p>Ceci est la page d'accueil de l'application de gestion de films.</p>
+    {% if not session.username %}
+        <a href="{{ url_for('connection') }}">Se connecter</a> <br/>
+    {% else %}
+        <p>Vous êtes connecté en tant que : {{ session.username }} </p>
+        <button id="logoutBtn">Se déconnecter</button> <br/>
+    {% endif %}
+    
+    <a href="{{ url_for('ajout_film') }}">Ajouter un nouveau film</a>
+    
+</body>
+<script defer>
+    let user = null;
+    fetch('/check_session')
+        .then(response => {
+            if (response.status === 200) {
+                return response.json();
+            } else {
+                throw new Error('Aucune session active');
+            }
+        })
+        .then(data => {
+            user = data.username;
+            console.log('Utilisateur connecté : ' + user);
+        })
+        .catch(error => {
+            console.log(error.message);
+        });
+
+    document.getElementById('logoutBtn').addEventListener('click', async () => {
+    try {
+        const res = await fetch('/logout', {
+        method: 'POST',
+        credentials: 'include'
+        });
+        const data = await res.json();
+        if (res.ok) {
+        window.location.href = '/';
+        } else {
+        alert('Erreur logout');
+        }
+    } catch (err) {
+        console.error(err);
+    }
+    });
+</script>
+</html>
