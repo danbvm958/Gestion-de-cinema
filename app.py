@@ -82,10 +82,11 @@ def login():
     cursor.execute('''
         SELECT * FROM users WHERE username = ? AND password = ?
     ''', (username, password))
-    user = cursor.fetchone()
+    result = cursor.fetchone()
+    user = Users(username, password) if result else None
     conn.close()
     if user:
-        session['username'] = username
+        session['username'] = user.username
         return jsonify({'message': 'Connexion réussie'}), 200
     else:
         return jsonify({'message': 'Identifiants invalides'}), 401

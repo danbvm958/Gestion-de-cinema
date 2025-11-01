@@ -17,7 +17,6 @@
         <input type="submit" value="Se connecter">
     </form>
     <a href="{{ url_for('inscription') }}">S'inscrire</a>
-</body>
 <script>
     document.getElementById('LoginForm').addEventListener('submit', function(event) {
         event.preventDefault();
@@ -45,8 +44,14 @@
         })
         .catch(error => {
             console.error('Erreur:', error);
-            alert('Nom d\'utilisateur ou mot de passe incorrect.');
+            form = document.getElementById('LoginForm');
+            let error2 = document.createElement('p');
+            error2.style.color = 'red';
+            error2.textContent = "Nom d'utilisateur ou mot de passe incorrect.";
+            document.body.insertBefore(error2, form.nextSibling);
         });
     });
 </script>
+</body>
+
 </html>
