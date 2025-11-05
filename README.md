@@ -22,5 +22,7 @@ Systeme de lancement des options
 Connection et inscription
 
 pour demarrer la version web 
-source venv/bin/active
+source venv/bin/active LINUX
+venv\Scripts\activate WINDOWS
+et
 flask run
