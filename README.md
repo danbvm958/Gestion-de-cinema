@@ -24,5 +24,12 @@ Connection et inscription
 pour demarrer la version web 
 source venv/bin/active LINUX
 venv\Scripts\activate WINDOWS
-et
+
+SI probleme avec venv : 
+supprimer le dossier venv 
+python -m venv venv
+venv\Scripts\activate WINDOWS
+pip install requirements.txt
+
+pour lancer le serveur
 flask run
