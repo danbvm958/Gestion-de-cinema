@@ -138,5 +138,7 @@ def logout():
     session.clear()
     return jsonify({'message': 'Déconnexion réussie'}), 200
 
+import seances  
+
 if __name__ == '__main__':
     app.run(debug=True)
