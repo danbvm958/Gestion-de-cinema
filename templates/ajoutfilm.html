@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ajouter un Film</title>
+</head>
+<body>
+    <h1>Ajouter un Film</h1>
+    <form id="addFilmForm">
+        <label for="title">Titre:</label>
+        <input type="text" id="title" name="title" required><br>
+
+        <label for="year">Année:</label>
+        <input type="number" id="year" name="year" required><br>
+
+        <label for="genre">Genre:</label>
+        <input type="text" id="genre" name="genre" required><br>
+
+        <label for="duration">Durée (en minutes):</label>
+        <input type="number" id="duration" name="duration" required><br>
+
+        <label for="classification">Classification:</label>
+        <input type="text" id="classification" name="classification" required><br>
+
+        <input type="submit" value="Ajouter Film">
+    </form>
+
+    <script>
+        document.getElementById('addFilmForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            const filmData = {
+                title: document.getElementById('title').value,
+                year: parseInt(document.getElementById('year').value),
+                genre: document.getElementById('genre').value,
+                duration: parseInt(document.getElementById('duration').value),
+                classification: document.getElementById('classification').value
+            };
+
+            fetch('http://127.0.0.1:5000/add_film', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(filmData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert(data.message);
+                document.getElementById('addFilmForm').reset();
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        });
+    </script>
+</body>
+</html>

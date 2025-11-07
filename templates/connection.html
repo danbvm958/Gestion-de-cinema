@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Page de connexion</title>
+</head>
+<body>
+    <h1>Connexion</h1>
+    <form id="LoginForm">
+        <label for="username">Nom d'utilisateur:</label>
+        <input type="text" id="username" name="username" required>
+        <br>
+        <label for="password">Mot de passe:</label>
+        <input type="password" id="password" name="password" required>
+        <br>
+        <input type="submit" value="Se connecter">
+    </form>
+    <a href="{{ url_for('inscription') }}">S'inscrire</a>
+<script>
+    document.getElementById('LoginForm').addEventListener('submit', function(event) {
+        event.preventDefault();
+
+        const username = document.getElementById('username').value;
+        const password = document.getElementById('password').value;
+
+        fetch('/login', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ username: username, password: password })
+        })
+        .then(response => {
+            if (response.ok) {
+                return response.json();
+            } else {
+                throw new Error('Échec de la connexion');
+            }
+        })
+        .then(data => {
+            console.log('Connexion réussie:', data);
+            window.location.href = '/';
+        })
+        .catch(error => {
+            console.error('Erreur:', error);
+            form = document.getElementById('LoginForm');
+            let error2 = document.createElement('p');
+            error2.style.color = 'red';
+            error2.textContent = "Nom d'utilisateur ou mot de passe incorrect.";
+            document.body.insertBefore(error2, form.nextSibling);
+        });
+    });
+</script>
+</body>
+
+</html>

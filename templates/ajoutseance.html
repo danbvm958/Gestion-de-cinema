@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Ajouter une séance</title>
+</head>
+<body>
+    <h1>Créer une séance de cinéma</h1>
+
+    <form id="formSeance">
+        <label>ID du film : <input type="number" name="film_id" required></label><br>
+        <label>Salle (1 à 5) : <input type="number" name="salle" required></label><br>
+        <label>Horaire (ex: 20:30) : <input type="text" name="horaire" required></label><br>
+        <button type="submit">Créer</button>
+    </form>
+
+    <p id="message"></p>
+
+    <script>
+        document.getElementById("formSeance").addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const data = Object.fromEntries(formData.entries());
+            data.salle = parseInt(data.salle);
+
+            const res = await fetch("/add_seance", {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify(data)
+            });
+
+            const result = await res.json();
+            document.getElementById("message").innerText = result.message;
+        });
+    </script>
+</body>
+</html>
