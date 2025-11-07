@@ -33,6 +33,27 @@ class Films :
         conn.commit()
         conn.close()
 
+class Room :
+    def __init__(self, number, capacity):
+        self.number  = number
+        self.capacity = capacity
+    def save_to_db(self):
+        conn = sqlite3.connect('cinema.db')
+        cursor = conn.cursor()
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS salles (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                number INTEGER,
+                capacity INTEGER
+            )
+        ''')
+        cursor.execute('''
+            INSERT INTO salles (number, capacity)
+            VALUES (?, ?)
+        ''', (self.number, self.capacity))
+        conn.commit()
+        conn.close()
+
 class Users :
     def __init__(self, username, password):
         self.username = username
@@ -116,6 +137,22 @@ def add_film():
     )
     new_film.save_to_db()
     return jsonify({'message': 'Film added successfully'}), 201
+
+@app.route('/add_room', methods=['POST'])
+def add_room():
+    data = request.get_json()
+    if not data:
+        return jsonify({'message': 'Requête invalide, JSON attendu.'}), 400
+    required = ['number', 'capacity']
+    for key in required:
+        if key not in data:
+            return jsonify({'message': f"Champ manquant: {key}"}), 400
+    new_room = Room(
+        number=data['number'],
+        capacity=data['capacity']
+    )
+    new_room.save_to_db()
+    return jsonify({'message': 'Room added successfully'}), 201
 
 @app.route('/')
 def accueil():
