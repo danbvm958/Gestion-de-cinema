@@ -1,34 +1,93 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ajouter un Film</title>
+    <title>Ajouter un Film - Cinéma CY Tech</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
 </head>
 <body>
-    <h1>Ajouter un Film</h1>
-    <form id="addFilmForm">
-        <label for="title">Titre:</label>
-        <input type="text" id="title" name="title" required><br>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <a href="{{ url_for('accueil') }}" class="navbar-brand">Cinéma CY Tech</a>
+        <ul class="nav-links">
+            <li><a href="{{ url_for('accueil') }}">Accueil</a></li>
+            <li><a href="{{ url_for('ajout_film') }}">Ajouter un film</a></li>
+            <li><a href="/ajoutseance">Ajouter une séance</a></li>
+        </ul>
+    </nav>
 
-        <label for="year">Année:</label>
-        <input type="number" id="year" name="year" required><br>
+    <div class="container">
+        <div class="card" style="max-width: 600px; margin: 2rem auto;">
+            <div class="card-header">
+                <h1>🎬 Ajouter un Film</h1>
+                <p>Enrichissez votre catalogue de films</p>
+            </div>
 
-        <label for="genre">Genre:</label>
-        <input type="text" id="genre" name="genre" required><br>
+            <!-- Messages -->
+            <div id="successMessage" class="alert alert-success hidden">
+                <span id="successText"></span>
+            </div>
+            <div id="errorMessage" class="alert alert-error hidden">
+                <span id="errorText"></span>
+            </div>
 
-        <label for="duration">Durée (en minutes):</label>
-        <input type="number" id="duration" name="duration" required><br>
+            <form id="addFilmForm">
+                <div class="form-group">
+                    <label for="title">Titre du film</label>
+                    <input type="text" id="title" name="title" class="form-control" placeholder="Ex: Inception" required>
+                </div>
 
-        <label for="classification">Classification:</label>
-        <input type="text" id="classification" name="classification" required><br>
+                <div class="form-group">
+                    <label for="year">Année de sortie</label>
+                    <input type="number" id="year" name="year" class="form-control" placeholder="Ex: 2010" required min="1900" max="2030">
+                </div>
 
-        <input type="submit" value="Ajouter Film">
-    </form>
+                <div class="form-group">
+                    <label for="genre">Genre</label>
+                    <input type="text" id="genre" name="genre" class="form-control" placeholder="Ex: Science-fiction, Action" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="duration">Durée (en minutes)</label>
+                    <input type="number" id="duration" name="duration" class="form-control" placeholder="Ex: 148" required min="1" max="500">
+                </div>
+
+                <div class="form-group">
+                    <label for="classification">Classification</label>
+                    <select id="classification" name="classification" class="form-control" required>
+                        <option value="">Sélectionnez une classification</option>
+                        <option value="Tous publics">Tous publics</option>
+                        <option value="-12">-12</option>
+                        <option value="-16">-16</option>
+                        <option value="-18">-18</option>
+                    </select>
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-block">Ajouter le film</button>
+                <a href="{{ url_for('accueil') }}" class="btn btn-secondary btn-block mt-2">Retour à l'accueil</a>
+            </form>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <p>&copy; 2025 Cinéma CY Tech</p>
+    </footer>
 
     <script>
-        document.getElementById('addFilmForm').addEventListener('submit', function(event) {
+        const addFilmForm = document.getElementById('addFilmForm');
+        const successMessage = document.getElementById('successMessage');
+        const errorMessage = document.getElementById('errorMessage');
+        const successText = document.getElementById('successText');
+        const errorText = document.getElementById('errorText');
+
+        addFilmForm.addEventListener('submit', async function(event) {
             event.preventDefault();
+
+            // Masquer les messages précédents
+            successMessage.classList.add('hidden');
+            errorMessage.classList.add('hidden');
 
             const filmData = {
                 title: document.getElementById('title').value,
@@ -38,21 +97,39 @@
                 classification: document.getElementById('classification').value
             };
 
-            fetch('http://127.0.0.1:5000/add_film', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(filmData)
-            })
-            .then(response => response.json())
-            .then(data => {
-                alert(data.message);
-                document.getElementById('addFilmForm').reset();
-            })
-            .catch(error => {
-                console.error('Error:', error);
-            });
+            try {
+                const response = await fetch('http://127.0.0.1:5000/add_film', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(filmData),
+                    credentials: 'include'
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    console.log('Film ajouté:', data);
+                    successText.textContent = `Film "${filmData.title}" ajouté avec succès !`;
+                    successMessage.classList.remove('hidden');
+                    
+                    // Réinitialiser le formulaire
+                    addFilmForm.reset();
+
+                    // Masquer le message après 5 secondes
+                    setTimeout(() => {
+                        successMessage.classList.add('hidden');
+                    }, 5000);
+                } else {
+                    errorText.textContent = data.message || "Erreur lors de l'ajout du film.";
+                    errorMessage.classList.remove('hidden');
+                }
+            } catch (error) {
+                console.error('Erreur:', error);
+                errorText.textContent = "Erreur de connexion au serveur. Veuillez réessayer.";
+                errorMessage.classList.remove('hidden');
+            }
         });
     </script>
 </body>

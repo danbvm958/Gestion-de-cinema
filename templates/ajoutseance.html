@@ -2,36 +2,166 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Ajouter une séance</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ajouter une Séance - Cinéma CY Tech</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
 </head>
 <body>
-    <h1>Créer une séance de cinéma</h1>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <a href="{{ url_for('accueil') }}" class="navbar-brand">Cinéma CY Tech</a>
+        <ul class="nav-links">
+            <li><a href="{{ url_for('accueil') }}">Accueil</a></li>
+            <li><a href="{{ url_for('ajout_film') }}">Ajouter un film</a></li>
+            <li><a href="/ajoutseance">Ajouter une séance</a></li>
+        </ul>
+    </nav>
 
-    <form id="formSeance">
-        <label>ID du film : <input type="number" name="film_id" required></label><br>
-        <label>Salle (1 à 5) : <input type="number" name="salle" required></label><br>
-        <label>Horaire (ex: 20:30) : <input type="text" name="horaire" required></label><br>
-        <button type="submit">Créer</button>
-    </form>
+    <div class="container">
+        <div class="card" style="max-width: 600px; margin: 2rem auto;">
+            <div class="card-header">
+                <h1>🎞️ Créer une Séance</h1>
+                <p>Planifiez une nouvelle projection</p>
+            </div>
 
-    <p id="message"></p>
+            <!-- Messages -->
+            <div id="successMessage" class="alert alert-success hidden">
+                <span id="successText"></span>
+            </div>
+            <div id="errorMessage" class="alert alert-error hidden">
+                <span id="errorText"></span>
+            </div>
+
+            <form id="formSeance">
+                <div class="form-group">
+                    <label for="film_id">ID du Film</label>
+                    <input type="number" id="film_id" name="film_id" class="form-control" placeholder="Ex: 1" required min="1">
+                    <small class="text-sm text-light">Identifiant du film dans la base de données</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="salle">Numéro de Salle</label>
+                    <select id="salle" name="salle" class="form-control" required>
+                        <option value="">Sélectionnez une salle</option>
+                        <option value="1">Salle 1</option>
+                        <option value="2">Salle 2</option>
+                        <option value="3">Salle 3</option>
+                        <option value="4">Salle 4</option>
+                        <option value="5">Salle 5</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="horaire">Horaire</label>
+                    <input type="time" id="horaire" name="horaire" class="form-control" required>
+                    <small class="text-sm text-light">Heure de début de la séance</small>
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-block">Créer la séance</button>
+                <a href="{{ url_for('accueil') }}" class="btn btn-secondary btn-block mt-2">Retour à l'accueil</a>
+            </form>
+
+            <div class="mt-4">
+                <h3 class="text-lg font-semibold mb-2">📋 Liste des Séances</h3>
+                <div id="seancesList" style="max-height: 300px; overflow-y: auto;">
+                    <div class="spinner" id="loadingSpinner"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <p>&copy; 2025 Cinéma CY Tech</p>
+    </footer>
 
     <script>
-        document.getElementById("formSeance").addEventListener("submit", async (e) => {
+        const formSeance = document.getElementById("formSeance");
+        const successMessage = document.getElementById('successMessage');
+        const errorMessage = document.getElementById('errorMessage');
+        const successText = document.getElementById('successText');
+        const errorText = document.getElementById('errorText');
+        const seancesList = document.getElementById('seancesList');
+        const loadingSpinner = document.getElementById('loadingSpinner');
+
+        // Charger la liste des séances au chargement
+        loadSeances();
+
+        formSeance.addEventListener("submit", async (e) => {
             e.preventDefault();
+
+            // Masquer les messages précédents
+            successMessage.classList.add('hidden');
+            errorMessage.classList.add('hidden');
+
             const formData = new FormData(e.target);
             const data = Object.fromEntries(formData.entries());
             data.salle = parseInt(data.salle);
+            data.film_id = parseInt(data.film_id);
 
-            const res = await fetch("/add_seance", {
-                method: "POST",
-                headers: {"Content-Type": "application/json"},
-                body: JSON.stringify(data)
-            });
+            try {
+                const res = await fetch("/add_seance", {
+                    method: "POST",
+                    headers: {"Content-Type": "application/json"},
+                    body: JSON.stringify(data),
+                    credentials: 'include'
+                });
 
-            const result = await res.json();
-            document.getElementById("message").innerText = result.message;
+                const result = await res.json();
+
+                if (res.ok) {
+                    successText.textContent = result.message;
+                    successMessage.classList.remove('hidden');
+                    formSeance.reset();
+                    
+                    // Recharger la liste des séances
+                    loadSeances();
+
+                    // Masquer le message après 5 secondes
+                    setTimeout(() => {
+                        successMessage.classList.add('hidden');
+                    }, 5000);
+                } else {
+                    errorText.textContent = result.message || "Erreur lors de la création de la séance.";
+                    errorMessage.classList.remove('hidden');
+                }
+            } catch (error) {
+                console.error('Erreur:', error);
+                errorText.textContent = "Erreur de connexion au serveur. Veuillez réessayer.";
+                errorMessage.classList.remove('hidden');
+            }
         });
+
+        async function loadSeances() {
+            try {
+                loadingSpinner.style.display = 'block';
+                const res = await fetch("/seances");
+                const seances = await res.json();
+                
+                loadingSpinner.style.display = 'none';
+
+                if (seances.length === 0) {
+                    seancesList.innerHTML = '<p class="text-light text-center">Aucune séance programmée</p>';
+                    return;
+                }
+
+                let html = '<div style="display: flex; flex-direction: column; gap: 0.5rem;">';
+                seances.forEach(s => {
+                    html += `
+                        <div style="padding: 0.75rem; background: #f9fafb; border-radius: 8px; border-left: 3px solid var(--primary-color);">
+                            <strong>${s.film}</strong> - Salle ${s.salle}<br>
+                            <small class="text-light">🕐 ${s.horaire}</small>
+                        </div>
+                    `;
+                });
+                html += '</div>';
+                seancesList.innerHTML = html;
+            } catch (error) {
+                loadingSpinner.style.display = 'none';
+                console.error('Erreur lors du chargement des séances:', error);
+                seancesList.innerHTML = '<p class="text-light text-center">Erreur de chargement</p>';
+            }
+        }
     </script>
 </body>
 </html>
