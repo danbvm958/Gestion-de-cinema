@@ -29,7 +29,7 @@ SI probleme avec venv :
 supprimer le dossier venv 
 python -m venv venv
 venv\Scripts\activate WINDOWS
-pip install requirements.txt
+pip install -r requirements.txt
 
 pour lancer le serveur
 flask run

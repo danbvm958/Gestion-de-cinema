@@ -1,57 +1,102 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Page de connexion</title>
+    <title>Connexion - Cinéma CY Tech</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
 </head>
 <body>
-    <h1>Connexion</h1>
-    <form id="LoginForm">
-        <label for="username">Nom d'utilisateur:</label>
-        <input type="text" id="username" name="username" required>
-        <br>
-        <label for="password">Mot de passe:</label>
-        <input type="password" id="password" name="password" required>
-        <br>
-        <input type="submit" value="Se connecter">
-    </form>
-    <a href="{{ url_for('inscription') }}">S'inscrire</a>
-<script>
-    document.getElementById('LoginForm').addEventListener('submit', function(event) {
-        event.preventDefault();
+    <!-- Navigation -->
+    <nav class="navbar">
+        <a href="{{ url_for('accueil') }}" class="navbar-brand">Cinéma CY Tech</a>
+        <ul class="nav-links">
+            <li><a href="{{ url_for('accueil') }}">Accueil</a></li>
+            <li><a href="{{ url_for('inscription') }}">Inscription</a></li>
+        </ul>
+    </nav>
 
-        const username = document.getElementById('username').value;
-        const password = document.getElementById('password').value;
+    <div class="container">
+        <div class="card" style="max-width: 500px; margin: 2rem auto;">
+            <div class="card-header">
+                <h1>🔐 Connexion</h1>
+                <p>Connectez-vous pour accéder à votre espace</p>
+            </div>
 
-        fetch('/login', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ username: username, password: password })
-        })
-        .then(response => {
-            if (response.ok) {
-                return response.json();
-            } else {
-                throw new Error('Échec de la connexion');
+            <!-- Message d'erreur -->
+            <div id="errorMessage" class="alert alert-error hidden">
+                <span id="errorText"></span>
+            </div>
+
+            <form id="LoginForm">
+                <div class="form-group">
+                    <label for="username">Nom d'utilisateur</label>
+                    <input type="text" id="username" name="username" class="form-control" placeholder="Entrez votre nom d'utilisateur" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="password">Mot de passe</label>
+                    <input type="password" id="password" name="password" class="form-control" placeholder="Entrez votre mot de passe" required>
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-block">Se connecter</button>
+            </form>
+
+            <div class="text-center mt-3">
+                <p class="text-sm text-light">
+                    Pas encore de compte ? 
+                    <a href="{{ url_for('inscription') }}" class="link-primary">Créer un compte</a>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <p>&copy; 2025 Cinéma CY Tech</p>
+    </footer>
+
+    <script>
+        const loginForm = document.getElementById('LoginForm');
+        const errorMessage = document.getElementById('errorMessage');
+        const errorText = document.getElementById('errorText');
+
+        loginForm.addEventListener('submit', async function(event) {
+            event.preventDefault();
+            
+            // Masquer les erreurs précédentes
+            errorMessage.classList.add('hidden');
+
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+
+            try {
+                const response = await fetch('/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ username: username, password: password }),
+                    credentials: 'include'
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    console.log('Connexion réussie:', data);
+                    // Redirection vers la page d'accueil
+                    window.location.href = '/';
+                } else {
+                    // Afficher l'erreur
+                    errorText.textContent = data.message || "Nom d'utilisateur ou mot de passe incorrect.";
+                    errorMessage.classList.remove('hidden');
+                }
+            } catch (error) {
+                console.error('Erreur:', error);
+                errorText.textContent = "Erreur de connexion au serveur. Veuillez réessayer.";
+                errorMessage.classList.remove('hidden');
             }
-        })
-        .then(data => {
-            console.log('Connexion réussie:', data);
-            window.location.href = '/';
-        })
-        .catch(error => {
-            console.error('Erreur:', error);
-            form = document.getElementById('LoginForm');
-            let error2 = document.createElement('p');
-            error2.style.color = 'red';
-            error2.textContent = "Nom d'utilisateur ou mot de passe incorrect.";
-            document.body.insertBefore(error2, form.nextSibling);
         });
-    });
-</script>
+    </script>
 </body>
-
 </html>
