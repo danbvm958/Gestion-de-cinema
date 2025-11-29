@@ -232,7 +232,6 @@ def logout():
     return jsonify({'message': 'Déconnexion réussie'}), 200
 
 import seances
-import salle
 
 if __name__ == '__main__':
     app.run(debug=True)
