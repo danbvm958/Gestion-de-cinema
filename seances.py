@@ -1,28 +1,30 @@
- # seances.py
+# seances.py
 import sqlite3
 from flask import request, jsonify, render_template
 from datetime import datetime, timedelta
-from app import app  # ⬅️ on importe ton application Flask existante
+from app import app  # on importe ton application Flask
 
 # ----------------------------
 # Classe Seance
 # ----------------------------
 class Seance:
     def __init__(self, film_id, salle, horaire):
-        """
-        film_id : int, identifiant du film
-        salle : int, numéro de la salle
-        horaire : str, format "YYYY-MM-DD HH:MM"
-        """
         self.film_id = film_id
         self.salle = salle
-        self.horaire = horaire
+
+        # --- Acceptation du format "HH:MM" ---
+        # on ajoute automatiquement la date du jour
+        if len(horaire) == 5:  # ex : "21:00"
+            date = datetime.today().strftime("%Y-%m-%d")
+            self.horaire = f"{date} {horaire}"
+        else:
+            self.horaire = horaire
 
     def save_to_db(self):
         conn = sqlite3.connect('cinema.db')
         cursor = conn.cursor()
 
-        # Créer la table des séances si elle n'existe pas encore
+        # Création de la table si elle n'existe pas
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS seances (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -34,17 +36,19 @@ class Seance:
         ''')
 
         # Vérifier que le film existe et récupérer sa durée
-        cursor.execute('SELECT * FROM films WHERE id = ?', (self.film_id,))
+        cursor.execute('SELECT titre, duree FROM films WHERE id = ?', (self.film_id,))
         film = cursor.fetchone()
         if not film:
             conn.close()
-            raise Exception(f"Film avec ID {self.film_id} inexistant.")
+            raise Exception(f"Film ID {self.film_id} inexistant.")
 
-        duree_film_minutes = film[2]  # on suppose que la colonne "duree" est à l'index 2
-        horaire_dt = datetime.strptime(self.horaire, "%Y-%m-%d %H:%M")
-        fin_horaire_dt = horaire_dt + timedelta(minutes=duree_film_minutes)
+        duree_film = film[1]  # colonne durée
 
-        # Vérifier que la salle est libre (aucun chevauchement)
+        # Calcul du début/fin de la séance
+        debut = datetime.strptime(self.horaire, "%Y-%m-%d %H:%M")
+        fin = debut + timedelta(minutes=duree_film)
+
+        # On récupère les autres séances de la même salle
         cursor.execute('''
             SELECT seances.horaire, films.duree
             FROM seances
@@ -53,16 +57,17 @@ class Seance:
         ''', (self.salle,))
         autres_seances = cursor.fetchall()
 
-        for row in autres_seances:
-            horaire_existante_dt = datetime.strptime(row[0], "%Y-%m-%d %H:%M")
-            fin_existante_dt = horaire_existante_dt + timedelta(minutes=row[1])
+        # Vérification des chevauchements
+        for h_existante, duree_existante in autres_seances:
+            debut2 = datetime.strptime(h_existante, "%Y-%m-%d %H:%M")
+            fin2 = debut2 + timedelta(minutes=duree_existante)
 
             # Condition de chevauchement
-            if (horaire_dt < fin_existante_dt) and (fin_horaire_dt > horaire_existante_dt):
+            if debut < fin2 and fin > debut2:
                 conn.close()
                 raise Exception(
-                    f"Impossible de programmer ce film : la salle {self.salle} est occupée "
-                    f"entre {horaire_existante_dt.strftime('%H:%M')} et {fin_existante_dt.strftime('%H:%M')}."
+                    f"Chevauchement détecté : séance existante "
+                    f"{debut2.strftime('%H:%M')}–{fin2.strftime('%H:%M')}."
                 )
 
         # Enregistrer la séance
@@ -70,6 +75,7 @@ class Seance:
             INSERT INTO seances (film_id, salle, horaire)
             VALUES (?, ?, ?)
         ''', (self.film_id, self.salle, self.horaire))
+
         conn.commit()
         conn.close()
 
@@ -80,17 +86,18 @@ class Seance:
 @app.route('/add_seance', methods=['POST'])
 def add_seance():
     data = request.get_json()
+
     if not data:
-        return jsonify({'message': 'Requête invalide, JSON attendu.'}), 400
+        return jsonify({'message': 'JSON manquant.'}), 400
 
     required = ['film_id', 'salle', 'horaire']
     for key in required:
         if key not in data:
-            return jsonify({'message': f"Champ manquant: {key}"}), 400
+            return jsonify({'message': f"Champ manquant : {key}"}), 400
 
     salle = data['salle']
     if salle < 1 or salle > 5:
-        return jsonify({'message': 'Le numéro de salle doit être compris entre 1 et 5.'}), 400
+        return jsonify({'message': 'La salle doit être entre 1 et 5.'}), 400
 
     try:
         seance = Seance(
@@ -100,6 +107,7 @@ def add_seance():
         )
         seance.save_to_db()
         return jsonify({'message': 'Séance créée avec succès ✅'}), 201
+
     except Exception as e:
         return jsonify({'message': str(e)}), 400
 
@@ -111,8 +119,9 @@ def add_seance():
 def get_seances():
     conn = sqlite3.connect('cinema.db')
     cursor = conn.cursor()
+
     cursor.execute('''
-        SELECT seances.id, films.title, seances.salle, seances.horaire
+        SELECT seances.id, films.titre, seances.salle, seances.horaire
         FROM seances
         JOIN films ON seances.film_id = films.id
         ORDER BY seances.horaire
@@ -128,7 +137,7 @@ def get_seances():
 
 
 # ----------------------------
-# Page HTML pour le gérant (optionnelle)
+# Page HTML (optionnel)
 # ----------------------------
 @app.route('/ajoutseance')
 def ajout_seance_page():
