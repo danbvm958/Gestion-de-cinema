@@ -55,23 +55,25 @@ class Room :
         conn.close()
 
 class Users :
-    def __init__(self, username, password):
+    def __init__(self, username, password, role='user'):
         self.username = username
         self.password = password
+        self.role = role
     def save_to_db(self):
         conn = sqlite3.connect('cinema.db')
         cursor = conn.cursor()
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS users (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
-                username TEXT,
-                password TEXT
+                username TEXT UNIQUE,
+                password TEXT,
+                role TEXT DEFAULT 'user'
             )
         ''')
         cursor.execute('''
-            INSERT INTO users (username, password)
-            VALUES (?, ?)
-        ''', (self.username, self.password))
+            INSERT INTO users (username, password, role)
+            VALUES (?, ?, ?)
+        ''', (self.username, self.password, self.role))
         conn.commit()
         conn.close()
 
@@ -84,12 +86,22 @@ def register():
     for key in required:
         if key not in data:
             return jsonify({'message': f"Champ manquant: {key}"}), 400
-    new_user = Users(
-        username=data['username'],
-        password=data['password']
-    )
-    new_user.save_to_db()
-    return jsonify({'message': 'Utilisateur enregistré avec succès'}), 201
+    
+    # Par défaut, les nouveaux utilisateurs sont 'user', sauf si un rôle est spécifié
+    role = data.get('role', 'user')
+    if role not in ['admin', 'user']:
+        role = 'user'
+    
+    try:
+        new_user = Users(
+            username=data['username'],
+            password=data['password'],
+            role=role
+        )
+        new_user.save_to_db()
+        return jsonify({'message': 'Utilisateur enregistré avec succès', 'role': role}), 201
+    except sqlite3.IntegrityError:
+        return jsonify({'message': 'Ce nom d\'utilisateur existe déjà'}), 400
 
 @app.route('/login', methods=['POST'])
 def login():
@@ -101,26 +113,38 @@ def login():
     conn = sqlite3.connect('cinema.db')
     cursor = conn.cursor()
     cursor.execute('''
-        SELECT * FROM users WHERE username = ? AND password = ?
+        SELECT id, username, password, role FROM users WHERE username = ? AND password = ?
     ''', (username, password))
     result = cursor.fetchone()
-    user = Users(username, password) if result else None
     conn.close()
-    if user:
-        session['username'] = user.username
-        return jsonify({'message': 'Connexion réussie'}), 200
+    if result:
+        session['username'] = result[1]
+        session['role'] = result[3] if len(result) > 3 else 'user'
+        return jsonify({
+            'message': 'Connexion réussie',
+            'username': result[1],
+            'role': session['role']
+        }), 200
     else:
         return jsonify({'message': 'Identifiants invalides'}), 401
 
 @app.route('/check_session', methods=['GET'])
 def check_session():
     if 'username' in session:
-        return jsonify({'message': 'Session valide', 'username': session['username']}), 200
+        return jsonify({
+            'message': 'Session valide',
+            'username': session['username'],
+            'role': session.get('role', 'user')
+        }), 200
     else:
         return jsonify({'message': 'Aucune session active'}), 401
 
 @app.route('/add_film', methods=['POST'])
 def add_film():
+    # Vérifier que l'utilisateur est admin
+    if 'username' not in session or session.get('role') != 'admin':
+        return jsonify({'message': 'Accès refusé. Réservé aux administrateurs.'}), 403
+    
     data = request.get_json()
     if not data:
         return jsonify({'message': 'Requête invalide, JSON attendu.'}), 400
@@ -137,6 +161,31 @@ def add_film():
     )
     new_film.save_to_db()
     return jsonify({'message': 'Film added successfully'}), 201
+
+@app.route('/films', methods=['GET'])
+def get_films():
+    conn = sqlite3.connect('cinema.db')
+    cursor = conn.cursor()
+    cursor.execute('''
+        SELECT id, title, year, genre, duration, classification
+        FROM films
+        ORDER BY title
+    ''')
+    rows = cursor.fetchall()
+    conn.close()
+    
+    films = [
+        {
+            'id': row[0],
+            'title': row[1],
+            'year': row[2],
+            'genre': row[3],
+            'duration': row[4],
+            'classification': row[5]
+        }
+        for row in rows
+    ]
+    return jsonify(films), 200
 
 @app.route('/add_room', methods=['POST'])
 def add_room():
@@ -160,6 +209,9 @@ def accueil():
 
 @app.route('/ajoutfilm')
 def ajout_film():
+    # Vérifier que l'utilisateur est admin
+    if 'username' not in session or session.get('role') != 'admin':
+        return render_template('error.html', message='Accès refusé. Réservé aux administrateurs.'), 403
     return render_template('ajoutfilm.html')
 
 @app.route('/inscription')
@@ -169,6 +221,10 @@ def inscription():
 @app.route('/connection')
 def connection():
     return render_template('connection.html')
+
+@app.route('/ajoutsalle')
+def ajout_salle():
+    return render_template('ajoutsalle.html')
 
 @app.route('/logout', methods=['POST'])
 def logout():
