@@ -1,6 +1,6 @@
 # seances.py
 import sqlite3
-from flask import request, jsonify, render_template
+from flask import request, jsonify, render_template, session
 from datetime import datetime, timedelta
 from app import app  # on importe ton application Flask
 
@@ -85,6 +85,10 @@ y
 # ----------------------------
 @app.route('/add_seance', methods=['POST'])
 def add_seance():
+    # Vérifier que l'utilisateur est admin
+    if 'username' not in session or session.get('role') != 'admin':
+        return jsonify({'message': 'Accès refusé. Réservé aux administrateurs.'}), 403
+    
     data = request.get_json()
 
     if not data:
@@ -141,4 +145,14 @@ def get_seances():
 # ----------------------------
 @app.route('/ajoutseance')
 def ajout_seance_page():
+    # Vérifier que l'utilisateur est admin
+    if 'username' not in session or session.get('role') != 'admin':
+        return render_template('error.html', message='Accès refusé. Réservé aux administrateurs.'), 403
     return render_template('ajoutseance.html')
+
+# Page de visualisation des séances (accessible à tous les connectés)
+@app.route('/seances_page')
+def seances_page():
+    if 'username' not in session:
+        return render_template('error.html', message='Veuillez vous connecter pour accéder aux séances.'), 403
+    return render_template('seances.html')

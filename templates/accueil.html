@@ -13,8 +13,11 @@
         <ul class="nav-links">
             <li><a href="{{ url_for('accueil') }}">Accueil</a></li>
             {% if session.username %}
-                <li><a href="{{ url_for('ajout_film') }}">Ajouter un film</a></li>
-                <li><a href="/ajoutseance">Ajouter une séance</a></li>
+                <li><a href="/seances" id="seancesLink">Séances</a></li>
+                {% if session.role == 'admin' %}
+                    <li><a href="{{ url_for('ajout_film') }}">Ajouter un film</a></li>
+                    <li><a href="/ajoutseance">Ajouter une séance</a></li>
+                {% endif %}
                 <li><a href="#" id="logoutLink">Se déconnecter</a></li>
             {% else %}
                 <li><a href="{{ url_for('connection') }}">Connexion</a></li>
@@ -29,7 +32,13 @@
             <h1>🎬 Bienvenue au Cinéma CY Tech</h1>
             <p>Gérez vos films, séances et réservations en toute simplicité</p>
             {% if session.username %}
-                <p class="text-lg">Connecté en tant que <strong>{{ session.username }}</strong></p>
+                <p class="text-lg">Connecté en tant que <strong>{{ session.username }}</strong> 
+                {% if session.role == 'admin' %}
+                    <span style="background: #ec4899; padding: 0.25rem 0.75rem; border-radius: 20px; font-size: 0.9rem; margin-left: 0.5rem;">Admin</span>
+                {% else %}
+                    <span style="background: #10b981; padding: 0.25rem 0.75rem; border-radius: 20px; font-size: 0.9rem; margin-left: 0.5rem;">Utilisateur</span>
+                {% endif %}
+                </p>
             {% endif %}
         </div>
 
@@ -39,8 +48,10 @@
                 <div class="feature-icon">🎥</div>
                 <h3>Gestion des Films</h3>
                 <p>Ajoutez et gérez votre catalogue de films avec toutes les informations nécessaires</p>
-                {% if session.username %}
+                {% if session.role == 'admin' %}
                     <a href="{{ url_for('ajout_film') }}" class="btn btn-primary">Ajouter un film</a>
+                {% elif session.username %}
+                    <button class="btn btn-secondary" disabled>Réservé aux admins</button>
                 {% else %}
                     <a href="{{ url_for('connection') }}" class="btn btn-secondary">Se connecter</a>
                 {% endif %}
@@ -50,8 +61,10 @@
                 <div class="feature-icon">🎞️</div>
                 <h3>Programmation</h3>
                 <p>Créez et planifiez vos séances dans différentes salles avec des horaires flexibles</p>
-                {% if session.username %}
+                {% if session.role == 'admin' %}
                     <a href="/ajoutseance" class="btn btn-primary">Programmer</a>
+                {% elif session.username %}
+                    <button class="btn btn-secondary" disabled>Réservé aux admins</button>
                 {% else %}
                     <a href="{{ url_for('connection') }}" class="btn btn-secondary">Se connecter</a>
                 {% endif %}
@@ -59,10 +72,10 @@
 
             <div class="feature-card">
                 <div class="feature-icon">🎫</div>
-                <h3>Réservations</h3>
-                <p>Gérez les réservations de vos clients et optimisez le remplissage des salles</p>
+                <h3>Séances</h3>
+                <p>Consultez toutes les séances programmées et leurs horaires</p>
                 {% if session.username %}
-                    <a href="#" class="btn btn-primary">Voir les réservations</a>
+                    <a href="#" class="btn btn-primary" onclick="window.location.href='/seances'; return false;">Voir les séances</a>
                 {% else %}
                     <a href="{{ url_for('connection') }}" class="btn btn-secondary">Se connecter</a>
                 {% endif %}

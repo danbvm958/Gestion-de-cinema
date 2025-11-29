@@ -67,6 +67,13 @@
                 <button type="submit" class="btn btn-primary btn-block">Ajouter le film</button>
                 <a href="{{ url_for('accueil') }}" class="btn btn-secondary btn-block mt-2">Retour à l'accueil</a>
             </form>
+
+            <div class="mt-4">
+                <h3 class="text-lg font-semibold mb-2">📋 Films existants</h3>
+                <div id="filmsList" style="max-height: 400px; overflow-y: auto;">
+                    <div class="spinner" id="loadingSpinner"></div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -81,6 +88,11 @@
         const errorMessage = document.getElementById('errorMessage');
         const successText = document.getElementById('successText');
         const errorText = document.getElementById('errorText');
+        const filmsList = document.getElementById('filmsList');
+        const loadingSpinner = document.getElementById('loadingSpinner');
+
+        // Charger la liste des films au chargement de la page
+        loadFilms();
 
         addFilmForm.addEventListener('submit', async function(event) {
             event.preventDefault();
@@ -117,6 +129,9 @@
                     // Réinitialiser le formulaire
                     addFilmForm.reset();
 
+                    // Recharger la liste des films
+                    loadFilms();
+
                     // Masquer le message après 5 secondes
                     setTimeout(() => {
                         successMessage.classList.add('hidden');
@@ -131,6 +146,45 @@
                 errorMessage.classList.remove('hidden');
             }
         });
+
+        async function loadFilms() {
+            try {
+                loadingSpinner.style.display = 'block';
+                const response = await fetch('/films');
+                const films = await response.json();
+                
+                loadingSpinner.style.display = 'none';
+
+                if (films.length === 0) {
+                    filmsList.innerHTML = '<p class="text-light text-center">Aucun film dans le catalogue</p>';
+                    return;
+                }
+
+                let html = '<div style="display: flex; flex-direction: column; gap: 0.75rem;">';
+                films.forEach(film => {
+                    html += `
+                        <div style="padding: 1rem; background: #f9fafb; border-radius: 8px; border-left: 4px solid var(--primary-color);">
+                            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 0.5rem;">
+                                <strong style="font-size: 1.1rem; color: var(--text-dark);">${film.title}</strong>
+                                <span style="background: var(--primary-color); color: white; padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.75rem;">ID: ${film.id}</span>
+                            </div>
+                            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.5rem; font-size: 0.9rem; color: var(--text-light);">
+                                <div>📅 ${film.year}</div>
+                                <div>🎭 ${film.genre}</div>
+                                <div>⏱️ ${film.duration} min</div>
+                                <div>🔞 ${film.classification}</div>
+                            </div>
+                        </div>
+                    `;
+                });
+                html += '</div>';
+                filmsList.innerHTML = html;
+            } catch (error) {
+                loadingSpinner.style.display = 'none';
+                console.error('Erreur lors du chargement des films:', error);
+                filmsList.innerHTML = '<p class="text-light text-center">Erreur de chargement</p>';
+            }
+        }
     </script>
 </body>
 </html>
