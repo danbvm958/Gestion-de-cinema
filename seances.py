@@ -61,7 +61,7 @@ class Seance:
         for h_existante, duree_existante in autres_seances:
             debut2 = datetime.strptime(h_existante, "%Y-%m-%d %H:%M")
             fin2 = debut2 + timedelta(minutes=duree_existante)
-y
+
             # Condition de chevauchement
             if debut < fin2 and fin > debut2:
                 conn.close()
