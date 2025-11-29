@@ -44,6 +44,8 @@
                 {% else %}
                     <a href="{{ url_for('connection') }}" class="btn btn-secondary">Se connecter</a>
                 {% endif %}
+                <a href="{{ url_for('reservation') }}" class="btn btn-secondary">Voir les réservations</a>
+                {% endif %}
             </div>
 
             <div class="feature-card">
@@ -62,7 +64,7 @@
                 <h3>Réservations</h3>
                 <p>Gérez les réservations de vos clients et optimisez le remplissage des salles</p>
                 {% if session.username %}
-                    <a href="#" class="btn btn-primary">Voir les réservations</a>
+                    <a href="/reservation" class="btn btn-primary">Voir les réservations</a>
                 {% else %}
                     <a href="{{ url_for('connection') }}" class="btn btn-secondary">Se connecter</a>
                 {% endif %}

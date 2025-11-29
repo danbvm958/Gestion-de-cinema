@@ -170,6 +170,10 @@ def inscription():
 def connection():
     return render_template('connection.html')
 
+@app.route('/ajoutsalle')
+def ajout_salle():
+    return render_template('ajoutsalle.html')
+
 @app.route('/logout', methods=['POST'])
 def logout():
     session.clear()
