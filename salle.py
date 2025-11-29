@@ -38,29 +38,52 @@ def add_room():
         if key not in data:
             return jsonify({'message': f"Champ manquant : {key}"}), 400
 
-    number = data['number']
-    capacity = data['capacity']
-
-    if not isinstance(number, int) or not isinstance(capacity, int):
+    try:
+        number = int(data['number'])
+        capacity = int(data['capacity'])
+    except ValueError:
         return jsonify({'message': 'number et capacity doivent être des entiers.'}), 400
 
+    try:
+        with sqlite3.connect('cinema.db') as conn:
+            cursor = conn.cursor()
+            cursor.execute('''
+                CREATE TABLE IF NOT EXISTS salles (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    number INTEGER UNIQUE,
+                    capacity INTEGER
+                )
+            ''')
+            cursor.execute("SELECT * FROM salles WHERE number = ?", (number,))
+            if cursor.fetchone():
+                return jsonify({'message': f"La salle numéro {number} existe déjà."}), 409
+
+            cursor.execute("INSERT INTO salles (number, capacity) VALUES (?, ?)", (number, capacity))
+            conn.commit()
+
+        return jsonify({'message': 'Salle ajoutée avec succès', 'number': number, 'capacity': capacity}), 201
+
+    except sqlite3.Error as e:
+        return jsonify({'message': 'Erreur base de données', 'error': str(e)}), 500
+
+@app.route('/salles', methods=['GET'])
+def get_salles():
     conn = sqlite3.connect('cinema.db')
     cursor = conn.cursor()
-    cursor.execute("CREATE TABLE IF NOT EXISTS salles (id INTEGER PRIMARY KEY AUTOINCREMENT, number INTEGER, capacity INTEGER)")
-    cursor.execute("SELECT * FROM salles WHERE number = ?", (number,))
-    exists = cursor.fetchone()
-
-    if exists:
-        conn.close()
-        return jsonify({'message': f"La salle numéro {number} existe déjà."}), 409
-
-    # Sauvegarde en base
-    try:
-        new_room = Room(number, capacity)
-        new_room.save_to_db()
-    except Exception as e:
-        conn.close()
-        return jsonify({'message': 'Erreur lors de l\'ajout en base de données', 'error': str(e)}), 500
-
+    cursor.execute('''
+        SELECT id, number, capacity
+        FROM salles
+        ORDER BY number
+    ''')
+    rows = cursor.fetchall()
     conn.close()
-    return jsonify({'message': 'Salle ajoutée avec succès', 'number': number, 'capacity': capacity}), 201
+    
+    salles = [
+        {
+            'id': row[0],
+            'number': row[1],
+            'capacity': row[2]
+        }
+        for row in rows
+    ]
+    return jsonify(salles), 200

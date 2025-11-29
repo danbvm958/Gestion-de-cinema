@@ -12,11 +12,12 @@
         <a href="{{ url_for('accueil') }}" class="navbar-brand">Cinéma CY Tech</a>
         <ul class="nav-links">
             <li><a href="{{ url_for('accueil') }}">Accueil</a></li>
-            <li><a href="/seances_page">Séances</a></li>
+            <li><a href="/seances">Séances</a></li>
             {% if session.role == 'admin' %}
                 <li><a href="{{ url_for('ajout_film') }}">Ajouter un film</a></li>
                 <li><a href="/ajoutseance">Ajouter une séance</a></li>
             {% endif %}
+            <li><a href="#" id="logoutLink">Se déconnecter</a></li>
         </ul>
     </nav>
 
@@ -48,7 +49,7 @@
         async function loadSeances() {
             try {
                 loadingSpinner.style.display = 'block';
-                const response = await fetch('/seances');
+                const response = await fetch('/api/seances');
                 const seances = await response.json();
                 
                 loadingSpinner.style.display = 'none';
@@ -110,6 +111,29 @@
             const date = new Date(dateStr);
             const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
             return date.toLocaleDateString('fr-FR', options);
+        }
+
+        // Logout handler
+        const logoutLink = document.getElementById('logoutLink');
+        if (logoutLink) {
+            logoutLink.addEventListener('click', async (e) => {
+                e.preventDefault();
+                try {
+                    const res = await fetch('/logout', {
+                        method: 'POST',
+                        credentials: 'include'
+                    });
+                    const data = await res.json();
+                    if (res.ok) {
+                        window.location.href = '/';
+                    } else {
+                        alert('Erreur lors de la déconnexion');
+                    }
+                } catch (err) {
+                    console.error(err);
+                    alert('Erreur réseau');
+                }
+            });
         }
     </script>
 </body>

@@ -33,26 +33,7 @@ class Films :
         conn.commit()
         conn.close()
 
-class Room :
-    def __init__(self, number, capacity):
-        self.number  = number
-        self.capacity = capacity
-    def save_to_db(self):
-        conn = sqlite3.connect('cinema.db')
-        cursor = conn.cursor()
-        cursor.execute('''
-            CREATE TABLE IF NOT EXISTS salles (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                number INTEGER,
-                capacity INTEGER
-            )
-        ''')
-        cursor.execute('''
-            INSERT INTO salles (number, capacity)
-            VALUES (?, ?)
-        ''', (self.number, self.capacity))
-        conn.commit()
-        conn.close()
+
 
 class Users :
     def __init__(self, username, password, role='user'):
@@ -187,21 +168,7 @@ def get_films():
     ]
     return jsonify(films), 200
 
-@app.route('/add_room', methods=['POST'])
-def add_room():
-    data = request.get_json()
-    if not data:
-        return jsonify({'message': 'Requête invalide, JSON attendu.'}), 400
-    required = ['number', 'capacity']
-    for key in required:
-        if key not in data:
-            return jsonify({'message': f"Champ manquant: {key}"}), 400
-    new_room = Room(
-        number=data['number'],
-        capacity=data['capacity']
-    )
-    new_room.save_to_db()
-    return jsonify({'message': 'Room added successfully'}), 201
+
 
 @app.route('/')
 def accueil():
@@ -226,12 +193,19 @@ def connection():
 def ajout_salle():
     return render_template('ajoutsalle.html')
 
+@app.route('/reservation')
+def reservation():
+    if 'username' not in session:
+        return render_template('error.html', message='Veuillez vous connecter pour accéder aux réservations.'), 403
+    return render_template('reservation.html')
+
 @app.route('/logout', methods=['POST'])
 def logout():
     session.clear()
     return jsonify({'message': 'Déconnexion réussie'}), 200
 
 import seances
+import salle
 
 if __name__ == '__main__':
     app.run(debug=True)

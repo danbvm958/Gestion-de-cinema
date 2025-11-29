@@ -14,7 +14,8 @@
             <li><a href="{{ url_for('accueil') }}">Accueil</a></li>
             <li><a href="{{ url_for('ajout_film') }}">Ajouter un film</a></li>
             <li><a href="/ajoutseance">Ajouter une séance</a></li>
-            <li><a href="/reservation">Voir les réservations</a></li>
+            <li><a href="/seances">Séances</a></li>
+            <li><a href="#" id="logoutLink">Se déconnecter</a></li>
         </ul>
     </nav>
 
@@ -139,7 +140,7 @@
         async function loadSeances() {
             try {
                 loadingSpinner.style.display = 'block';
-                const res = await fetch("/seances");
+                const res = await fetch("/api/seances");
                 const seances = await res.json();
                 loadingSpinner.style.display = 'none';
 
@@ -164,6 +165,29 @@
                 console.error('Erreur lors du chargement des séances:', error);
                 seancesList.innerHTML = '<p class="text-light text-center">Erreur de chargement</p>';
             }
+        }
+
+        // Logout handler
+        const logoutLink = document.getElementById('logoutLink');
+        if (logoutLink) {
+            logoutLink.addEventListener('click', async (e) => {
+                e.preventDefault();
+                try {
+                    const res = await fetch('/logout', {
+                        method: 'POST',
+                        credentials: 'include'
+                    });
+                    const data = await res.json();
+                    if (res.ok) {
+                        window.location.href = '/';
+                    } else {
+                        alert('Erreur lors de la déconnexion');
+                    }
+                } catch (err) {
+                    console.error(err);
+                    alert('Erreur réseau');
+                }
+            });
         }
     </script>
 </body>

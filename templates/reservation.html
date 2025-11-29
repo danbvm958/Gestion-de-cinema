@@ -15,6 +15,7 @@
             <li><a href="{{ url_for('ajout_film') }}">Ajouter un film</a></li>
             <li><a href="/ajoutseance">Ajouter une séance</a></li>
             <li><a href="/reservation">Voir les réservations</a></li>
+            <li><a href="#" id="logoutLink">Se déconnecter</a></li>
         </ul>
     </nav>
 
@@ -142,6 +143,29 @@
                 errorMessage.classList.remove("hidden");
             }
         });
+
+        // Logout handler
+        const logoutLink = document.getElementById('logoutLink');
+        if (logoutLink) {
+            logoutLink.addEventListener('click', async (e) => {
+                e.preventDefault();
+                try {
+                    const res = await fetch('/logout', {
+                        method: 'POST',
+                        credentials: 'include'
+                    });
+                    const data = await res.json();
+                    if (res.ok) {
+                        window.location.href = '/';
+                    } else {
+                        alert('Erreur lors de la déconnexion');
+                    }
+                } catch (err) {
+                    console.error(err);
+                    alert('Erreur réseau');
+                }
+            });
+        }
     </script>
 </body>
 </html>
