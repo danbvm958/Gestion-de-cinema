@@ -36,13 +36,13 @@ class Seance:
         ''')
 
         # Vérifier que le film existe et récupérer sa durée
-        cursor.execute('SELECT titre, duree FROM films WHERE id = ?', (self.film_id,))
+        cursor.execute('SELECT title, duration FROM films WHERE id = ?', (self.film_id,))
         film = cursor.fetchone()
         if not film:
             conn.close()
             raise Exception(f"Film ID {self.film_id} inexistant.")
 
-        duree_film = film[1]  # colonne durée
+        duree_film = film[1]  # colonne duration
 
         # Calcul du début/fin de la séance
         debut = datetime.strptime(self.horaire, "%Y-%m-%d %H:%M")
@@ -50,7 +50,7 @@ class Seance:
 
         # On récupère les autres séances de la même salle
         cursor.execute('''
-            SELECT seances.horaire, films.duree
+            SELECT seances.horaire, films.duration
             FROM seances
             JOIN films ON seances.film_id = films.id
             WHERE seances.salle = ?
@@ -94,7 +94,7 @@ def add_seance():
     if not data:
         return jsonify({'message': 'JSON manquant.'}), 400
 
-    required = ['film_id', 'salle', 'horaire']
+    required = ['film_id', 'salle']
     for key in required:
         if key not in data:
             return jsonify({'message': f"Champ manquant : {key}"}), 400
@@ -103,11 +103,19 @@ def add_seance():
     if salle < 1 or salle > 5:
         return jsonify({'message': 'La salle doit être entre 1 et 5.'}), 400
 
+    # Construire l'horaire complet à partir de date et horaire
+    if 'date' in data and 'horaire' in data:
+        horaire_complet = f"{data['date']} {data['horaire']}"
+    elif 'horaire' in data:
+        horaire_complet = data['horaire']
+    else:
+        return jsonify({'message': 'Champ manquant : horaire ou (date + horaire)'}), 400
+
     try:
         seance = Seance(
             film_id=data['film_id'],
             salle=salle,
-            horaire=data['horaire']
+            horaire=horaire_complet
         )
         seance.save_to_db()
         return jsonify({'message': 'Séance créée avec succès ✅'}), 201
@@ -117,15 +125,15 @@ def add_seance():
 
 
 # ----------------------------
-# Route Flask : liste des séances
+# Route Flask : liste des séances (API JSON)
 # ----------------------------
-@app.route('/seances', methods=['GET'])
+@app.route('/api/seances', methods=['GET'])
 def get_seances():
     conn = sqlite3.connect('cinema.db')
     cursor = conn.cursor()
 
     cursor.execute('''
-        SELECT seances.id, films.titre, seances.salle, seances.horaire
+        SELECT seances.id, films.title, seances.salle, seances.horaire
         FROM seances
         JOIN films ON seances.film_id = films.id
         ORDER BY seances.horaire
@@ -151,7 +159,7 @@ def ajout_seance_page():
     return render_template('ajoutseance.html')
 
 # Page de visualisation des séances (accessible à tous les connectés)
-@app.route('/seances_page')
+@app.route('/seances')
 def seances_page():
     if 'username' not in session:
         return render_template('error.html', message='Veuillez vous connecter pour accéder aux séances.'), 403

@@ -65,3 +65,25 @@ def add_room():
 
     except sqlite3.Error as e:
         return jsonify({'message': 'Erreur base de données', 'error': str(e)}), 500
+
+@app.route('/salles', methods=['GET'])
+def get_salles():
+    conn = sqlite3.connect('cinema.db')
+    cursor = conn.cursor()
+    cursor.execute('''
+        SELECT id, number, capacity
+        FROM salles
+        ORDER BY number
+    ''')
+    rows = cursor.fetchall()
+    conn.close()
+    
+    salles = [
+        {
+            'id': row[0],
+            'number': row[1],
+            'capacity': row[2]
+        }
+        for row in rows
+    ]
+    return jsonify(salles), 200
