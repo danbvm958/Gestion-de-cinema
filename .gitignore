@@ -10,10 +10,6 @@ __pycache__/
 *$py.class
 *.so
 
-# Base de données
-# *.db
-# *.sqlite
-# *.sqlite3
 
 # Fichiers IDE
 .vscode/
