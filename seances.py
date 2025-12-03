@@ -4,9 +4,8 @@ from flask import request, jsonify, render_template, session
 from datetime import datetime, timedelta
 from app import app  # on importe ton application Flask
 
-# ----------------------------
 # Classe Seance
-# ----------------------------
+
 class Seance:
     def __init__(self, film_id, salle, horaire):
         self.film_id = film_id
@@ -80,9 +79,9 @@ class Seance:
         conn.close()
 
 
-# ----------------------------
+
 # Route Flask : ajout d’une séance
-# ----------------------------
+
 @app.route('/add_seance', methods=['POST'])
 def add_seance():
     # Vérifier que l'utilisateur est admin
@@ -124,9 +123,9 @@ def add_seance():
         return jsonify({'message': str(e)}), 400
 
 
-# ----------------------------
+
 # Route Flask : liste des séances (API JSON)
-# ----------------------------
+
 @app.route('/api/seances', methods=['GET'])
 def get_seances():
     conn = sqlite3.connect('cinema.db')
@@ -148,9 +147,9 @@ def get_seances():
     return jsonify(seances), 200
 
 
-# ----------------------------
-# Page HTML (optionnel)
-# ----------------------------
+
+# Page HTML 
+
 @app.route('/ajoutseance')
 def ajout_seance_page():
     # Vérifier que l'utilisateur est admin
