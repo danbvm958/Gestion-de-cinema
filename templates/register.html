@@ -9,18 +9,20 @@
 <body>
     <!-- Navigation -->
     <nav class="navbar">
-        <a href="{{ url_for('accueil') }}" class="navbar-brand">Cinéma CY Tech</a>
-        <ul class="nav-links">
-            <li><a href="{{ url_for('accueil') }}">Accueil</a></li>
-            <li><a href="{{ url_for('connection') }}">Connexion</a></li>
-        </ul>
+        <div class="navbar-container">
+            <a href="{{ url_for('accueil') }}" class="navbar-brand">🎬 Cinéma CY Tech</a>
+            <ul class="nav-links">
+                <li><a href="{{ url_for('accueil') }}">Accueil</a></li>
+                <li><a href="{{ url_for('connection') }}">Connexion</a></li>
+            </ul>
+        </div>
     </nav>
 
     <div class="container">
-        <div class="card" style="max-width: 500px; margin: 2rem auto;">
+        <div class="form-container">
             <div class="card-header">
-                <h1>📝 Inscription</h1>
-                <p>Créez votre compte pour commencer</p>
+                <h1>✨ Inscription</h1>
+                <p>Créez votre compte pour profiter du cinéma</p>
             </div>
 
             <!-- Messages -->

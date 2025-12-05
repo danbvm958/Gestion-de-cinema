@@ -1,13 +1,19 @@
 import sqlite3
 from flask import request, jsonify, render_template
-from app import app 
+from app import app
 
 class Room:
+    """Classe représentant une salle de cinéma"""
+    
+    # Crée une salle avec son numéro et sa capacité maximale
     def __init__(self, number, capacity):
+        """Initialise une salle avec son numéro et sa capacité"""
         self.number = number
         self.capacity = capacity
 
+    # Enregistre la salle dans la base de données
     def save_to_db(self):
+        """Enregistre la salle dans la base de données"""
         conn = sqlite3.connect('cinema.db')
         cursor = conn.cursor()
 
@@ -27,8 +33,10 @@ class Room:
         conn.commit()
         conn.close()
 
+# Route pour ajouter une nouvelle salle dans le cinéma
 @app.route('/add_room', methods=['POST'])
 def add_room():
+    """Ajoute une nouvelle salle dans la base de données"""
     data = request.get_json()
     if not data:
         return jsonify({'message': 'Requête invalide, JSON attendu.'}), 400
@@ -39,6 +47,7 @@ def add_room():
             return jsonify({'message': f"Champ manquant : {key}"}), 400
 
     try:
+        # Conversion en entier avec gestion d'erreur
         number = int(data['number'])
         capacity = int(data['capacity'])
     except ValueError:
@@ -66,8 +75,10 @@ def add_room():
     except sqlite3.Error as e:
         return jsonify({'message': 'Erreur base de données', 'error': str(e)}), 500
 
+# Route API pour récupérer toutes les salles en format JSON
 @app.route('/salles', methods=['GET'])
 def get_salles():
+    """Retourne la liste de toutes les salles disponibles"""
     conn = sqlite3.connect('cinema.db')
     cursor = conn.cursor()
     cursor.execute('''
