@@ -120,7 +120,7 @@
             };
 
             try {
-                const response = await fetch('http://127.0.0.1:5000/add_film', {
+                const response = await fetch('/add_film', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
@@ -172,17 +172,24 @@
 
                 let html = '<div style="display: flex; flex-direction: column; gap: 0.75rem;">';
                 films.forEach(film => {
+                    const posterUrl = film.poster_url || 'https://via.placeholder.com/80x120/141414/e50914?text=Film';
                     html += `
-                        <div style="padding: 1rem; background: var(--cinema-card); border-radius: 8px; border-left: 4px solid var(--cinema-accent);">
-                            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 0.5rem;">
-                                <strong style="font-size: 1.1rem; color: var(--cinema-text);">${film.title}</strong>
-                                <span style="background: var(--cinema-accent); color: white; padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.75rem;">ID: ${film.id}</span>
-                            </div>
-                            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.5rem; font-size: 0.9rem; color: var(--cinema-text-dim);">
-                                <div>📅 ${film.year}</div>
-                                <div>🎭 ${film.genre}</div>
-                                <div>⏱️ ${film.duration} min</div>
-                                <div>🔞 ${film.classification}</div>
+                        <div style="padding: 1rem; background: var(--cinema-card); border-radius: 8px; border-left: 4px solid var(--cinema-accent); display: flex; gap: 1rem;">
+                            <img src="${posterUrl}" alt="${film.title}" style="width: 80px; height: 120px; object-fit: cover; border-radius: 4px;">
+                            <div style="flex: 1;">
+                                <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 0.5rem;">
+                                    <strong style="font-size: 1.1rem; color: var(--cinema-text);">${film.title}</strong>
+                                    <span style="background: var(--cinema-accent); color: white; padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.75rem;">ID: ${film.id}</span>
+                                </div>
+                                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.5rem; font-size: 0.9rem; color: var(--cinema-text-dim); margin-bottom: 0.75rem;">
+                                    <div>📅 ${film.year}</div>
+                                    <div>🎭 ${film.genre}</div>
+                                    <div>⏱️ ${film.duration} min</div>
+                                    <div>🔞 ${film.classification}</div>
+                                </div>
+                                <button onclick="updatePoster(${film.id}, '${film.title}')" class="btn btn-primary" style="padding: 0.4rem 0.8rem; font-size: 0.85rem;">
+                                    🖼️ Modifier l'affiche
+                                </button>
                             </div>
                         </div>
                     `;
@@ -193,6 +200,44 @@
                 loadingSpinner.style.display = 'none';
                 console.error('Erreur lors du chargement des films:', error);
                 filmsList.innerHTML = '<p class="text-light text-center">Érreur de chargement</p>';
+            }
+        }
+
+        // Fonction pour mettre à jour l'affiche d'un film
+        async function updatePoster(filmId, filmTitle) {
+            const newPosterUrl = prompt(`Modifier l'affiche de "${filmTitle}"\n\nEntrez la nouvelle URL de l'affiche:`);
+            
+            if (!newPosterUrl) return; // Annulé
+            
+            try {
+                const response = await fetch(`/update_film_poster/${filmId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ poster_url: newPosterUrl }),
+                    credentials: 'include'
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    successText.textContent = data.message;
+                    successMessage.classList.remove('hidden');
+                    errorMessage.classList.add('hidden');
+                    
+                    // Recharger la liste des films
+                    loadFilms();
+                } else {
+                    errorText.textContent = data.message || "Erreur lors de la mise à jour.";
+                    errorMessage.classList.remove('hidden');
+                    successMessage.classList.add('hidden');
+                }
+            } catch (error) {
+                console.error('Erreur:', error);
+                errorText.textContent = "Erreur de connexion au serveur.";
+                errorMessage.classList.remove('hidden');
+                successMessage.classList.add('hidden');
             }
         }
 

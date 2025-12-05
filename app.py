@@ -5,7 +5,7 @@ from flask_cors import CORS
 # Création de l'application Flask
 app = Flask(__name__)
 app.secret_key = 'change'
-CORS(app, supports_credentials=True)
+CORS(app, supports_credentials=True, origins=['http://127.0.0.1:5000', 'http://localhost:5000'])
 
 class Films:
     """Classe représentant un film dans la base de données"""
@@ -197,6 +197,35 @@ def get_films():
     ]
     return jsonify(films), 200
 
+# Route pour mettre à jour l'affiche d'un film (réservé aux admins)
+@app.route('/update_film_poster/<int:film_id>', methods=['PUT'])
+def update_film_poster(film_id):
+    """Met à jour l'URL de l'affiche d'un film (réservé aux admins)"""
+    # Vérifier que l'utilisateur est admin
+    if 'username' not in session or session.get('role') != 'admin':
+        return jsonify({'message': 'Accès refusé. Réservé aux administrateurs.'}), 403
+    
+    data = request.get_json()
+    if not data or 'poster_url' not in data:
+        return jsonify({'message': 'URL de l\'affiche manquante'}), 400
+    
+    poster_url = data['poster_url']
+    
+    conn = sqlite3.connect('cinema.db')
+    cursor = conn.cursor()
+    
+    # Vérifier que le film existe
+    cursor.execute('SELECT id FROM films WHERE id = ?', (film_id,))
+    if not cursor.fetchone():
+        conn.close()
+        return jsonify({'message': 'Film introuvable'}), 404
+    
+    # Mettre à jour l'affiche
+    cursor.execute('UPDATE films SET poster_url = ? WHERE id = ?', (poster_url, film_id))
+    conn.commit()
+    conn.close()
+    
+    return jsonify({'message': 'Affiche mise à jour avec succès'}), 200
 
 
 # Route de la page d'accueil affichant toutes les séances

@@ -87,6 +87,11 @@
     </footer>
 
     <script>
+        // Définir la date minimale à aujourd'hui
+        const dateInput = document.getElementById('date');
+        const today = new Date().toISOString().split('T')[0];
+        dateInput.min = today;
+
         const formSeance = document.getElementById("formSeance");
         const successMessage = document.getElementById('successMessage');
         const errorMessage = document.getElementById('errorMessage');
@@ -187,6 +192,16 @@
             const data = Object.fromEntries(formData.entries());
             data.salle = parseInt(data.salle);
             data.film_id = parseInt(data.film_id);
+
+            // Validation côté client : vérifier que la séance est dans le futur
+            const seanceDateTime = new Date(`${data.date}T${data.horaire}`);
+            const now = new Date();
+            
+            if (seanceDateTime <= now) {
+                errorText.textContent = "⚠️ Impossible de créer une séance dans le passé. Veuillez choisir une date et heure futures.";
+                errorMessage.classList.remove('hidden');
+                return;
+            }
 
             try {
                 const res = await fetch("/add_seance", {

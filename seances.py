@@ -127,6 +127,16 @@ def add_seance():
     else:
         return jsonify({'message': 'Champ manquant : horaire ou (date + horaire)'}), 400
 
+    # Vérifier que la séance est dans le futur
+    try:
+        seance_datetime = datetime.strptime(horaire_complet, "%Y-%m-%d %H:%M")
+        maintenant = datetime.now()
+        
+        if seance_datetime <= maintenant:
+            return jsonify({'message': 'Impossible de créer une séance dans le passé. Veuillez choisir une date et heure futures.'}), 400
+    except ValueError:
+        return jsonify({'message': 'Format de date/horaire invalide. Format attendu : YYYY-MM-DD HH:MM'}), 400
+
     try:
         seance = Seance(
             film_id=data['film_id'],
