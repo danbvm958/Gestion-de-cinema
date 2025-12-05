@@ -7,7 +7,6 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
 </head>
 <body>
-    <!-- Navigation -->
     <nav class="navbar">
         <div class="navbar-container">
             <a href="{{ url_for('accueil') }}" class="navbar-brand">🎬 Cinéma CY Tech</a>
@@ -33,13 +32,10 @@
             <div class="spinner" id="loadingSpinner"></div>
         </div>
     </div>
-
-    <!-- Footer -->
     <footer class="footer">
         <p>&copy; 2025 Cinéma CY Tech</p>
     </footer>
 
-    <!-- Modal de réservation -->
     <div id="reservationModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 9999; justify-content: center; align-items: center;">
         <div style="background: var(--cinema-card); border-radius: 12px; padding: 2rem; max-width: 500px; width: 90%; box-shadow: 0 10px 40px rgba(0,0,0,0.5);">
             <h2 style="color: var(--cinema-accent); margin-bottom: 1rem; font-size: 1.5rem;">🎟️ Réserver vos places</h2>
@@ -62,6 +58,7 @@
 
         loadSeances();
 
+        // Charge toutes les séances depuis l'API et les affiche groupées par date
         async function loadSeances() {
             try {
                 loadingSpinner.style.display = 'block';
@@ -132,6 +129,7 @@
         let currentReservation = null;
         let selectedSeats = 1;
 
+        // Ouvre le modal de réservation avec les informations de la séance
         function openModal(seanceId, filmTitle, time, remaining) {
             currentReservation = { seanceId, filmTitle, time, remaining };
             selectedSeats = 1;
@@ -168,6 +166,7 @@
             modal.style.display = 'flex';
         }
 
+        // Met à jour le nombre de places sélectionnées et met en surbrillance le bouton correspondant
         function selectSeats(num, max) {
             selectedSeats = num;
             const buttons = document.querySelectorAll('#seatsButtons button');
@@ -180,11 +179,13 @@
             });
         }
 
+        // Ferme le modal de réservation et réinitialise les données
         function closeModal() {
             document.getElementById('reservationModal').style.display = 'none';
             currentReservation = null;
         }
 
+        // Envoie la requête de réservation au serveur et affiche le résultat
         async function confirmReservation() {
             if (!currentReservation) return;
             
@@ -236,6 +237,7 @@
             }
         }
 
+        // Récupère les informations de la séance et ouvre le modal de réservation
         async function reserverSeance(seanceId, filmTitle, time) {
             // Récupérer le nombre de places restantes pour cette séance
             const response = await fetch('/api/seances');
@@ -250,6 +252,7 @@
             openModal(seanceId, filmTitle, time, remaining);
         }
 
+        // Formate une date au format français (ex: lundi 5 décembre 2025)
         function formatDate(dateStr) {
             const date = new Date(dateStr);
             const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };

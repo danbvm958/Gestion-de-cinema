@@ -7,7 +7,6 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
 </head>
 <body>
-    <!-- Navigation -->
     <nav class="navbar">
         <div class="navbar-container">
             <a href="{{ url_for('accueil') }}" class="navbar-brand">🎬 Cinéma CY Tech</a>
@@ -28,7 +27,6 @@
                 <p>Planifiez une nouvelle projection</p>
             </div>
 
-            <!-- Messages -->
             <div id="successMessage" class="alert alert-success hidden">
                 <span id="successText"></span>
             </div>
@@ -54,8 +52,6 @@
                         <option value="5">Salle 5</option>
                     </select>
                 </div>
-
-                <!-- Nouvelle section : Date de séance -->
                 <div class="form-group">
                     <label for="date">Date</label>
                     <input type="date" id="date" name="date" class="form-control" required>
@@ -81,7 +77,6 @@
         </div>
     </div>
 
-    <!-- Footer -->
     <footer class="footer">
         <p>&copy; 2025 Cinéma CY Tech</p>
     </footer>
@@ -149,6 +144,7 @@
             }
         }
 
+        // Supprime une séance après confirmation de l'utilisateur
         async function deleteSeance(seanceId, filmTitle) {
             if (!confirm(`Êtes-vous sûr de vouloir supprimer la séance "${filmTitle}" ?\n\nToutes les réservations associées seront également supprimées.`)) {
                 return;
@@ -181,7 +177,7 @@
             }
         }
 
-        // Fonction pour gérer l'ajout normal
+        // Gère l'ajout d'une nouvelle séance avec validation de la date/heure
         async function handleAddSeance(e) {
             e.preventDefault();
 

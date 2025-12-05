@@ -7,7 +7,6 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
 </head>
 <body>
-    <!-- Navigation -->
     <nav class="navbar">
         <div class="navbar-container">
             <a href="{{ url_for('accueil') }}" class="navbar-brand">🎬 Cinéma CY Tech</a>
@@ -27,8 +26,6 @@
                 <h1>🎬 Ajouter un Film</h1>
                 <p>Enrichissez votre catalogue de films</p>
             </div>
-
-            <!-- Messages -->
             <div id="successMessage" class="alert alert-success hidden">
                 <span id="successText"></span>
             </div>
@@ -86,12 +83,10 @@
         </div>
     </div>
 
-    <!-- Footer -->
     <footer class="footer">
         <p>&copy; 2025 Cinéma CY Tech</p>
     </footer>
 
-    <!-- Modal pour modifier l'affiche -->
     <div id="posterModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 9999; justify-content: center; align-items: center;">
         <div style="background: var(--cinema-card); border-radius: 12px; padding: 2rem; max-width: 500px; width: 90%; box-shadow: 0 10px 40px rgba(0,0,0,0.5);">
             <h2 style="color: var(--cinema-accent); margin-bottom: 1rem; font-size: 1.5rem;">🖼️ Modifier l'affiche</h2>
@@ -230,7 +225,7 @@
         const newPosterUrlInput = document.getElementById('newPosterUrl');
         const modalPosterMessage = document.getElementById('modalPosterMessage');
 
-        // Fonction pour ouvrir le modal de modification d'affiche
+        // Ouvre le modal pour modifier l'URL de l'affiche d'un film
         function updatePoster(filmId, filmTitle) {
             currentFilmId = filmId;
             modalFilmTitle.textContent = `Film : "${filmTitle}"`;
@@ -240,13 +235,13 @@
             newPosterUrlInput.focus();
         }
 
-        // Fonction pour fermer le modal
+        // Ferme le modal de modification d'affiche
         function closePosterModal() {
             posterModal.style.display = 'none';
             currentFilmId = null;
         }
 
-        // Fonction pour confirmer la mise à jour
+        // Envoie la nouvelle URL d'affiche au serveur et met à jour l'affichage
         async function confirmPosterUpdate() {
             const newPosterUrl = newPosterUrlInput.value.trim();
             
