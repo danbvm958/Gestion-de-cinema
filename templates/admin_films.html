@@ -9,14 +9,16 @@
 <body>
     <!-- Navigation -->
     <nav class="navbar">
-        <a href="{{ url_for('accueil') }}" class="navbar-brand">Cinéma CY Tech</a>
-        <ul class="nav-links">
-            <li><a href="{{ url_for('accueil') }}">Accueil</a></li>
-            <li><a href="{{ url_for('ajout_film') }}">Ajouter un film</a></li>
-            <li><a href="/ajoutseance">Ajouter une séance</a></li>
-            <li><a href="/seances">Séances</a></li>
-            <li><a href="#" id="logoutLink">Se déconnecter</a></li>
-        </ul>
+        <div class="navbar-container">
+            <a href="{{ url_for('accueil') }}" class="navbar-brand">🎬 Cinéma CY Tech</a>
+            <ul class="nav-links">
+                <li><a href="{{ url_for('accueil') }}">Accueil</a></li>
+                <li><a href="/my-bookings">Mes Réservations</a></li>
+                <li><a href="{{ url_for('ajout_film') }}">Gérer Films</a></li>
+                <li><a href="/admin/sessions">Gérer Séances</a></li>
+                <li><a href="#" id="logoutLink">Déconnexion</a></li>
+            </ul>
+        </div>
     </nav>
 
     <div class="container">
@@ -66,6 +68,11 @@
                     </select>
                 </div>
 
+                <div class="form-group">
+                    <label for="poster_url">URL de l'affiche (optionnel)</label>
+                    <input type="url" id="poster_url" name="poster_url" class="form-control" placeholder="https://exemple.com/affiche.jpg">
+                </div>
+
                 <button type="submit" class="btn btn-primary btn-block">Ajouter le film</button>
                 <a href="{{ url_for('accueil') }}" class="btn btn-secondary btn-block mt-2">Retour à l'accueil</a>
             </form>
@@ -108,7 +115,8 @@
                 year: parseInt(document.getElementById('year').value),
                 genre: document.getElementById('genre').value,
                 duration: parseInt(document.getElementById('duration').value),
-                classification: document.getElementById('classification').value
+                classification: document.getElementById('classification').value,
+                poster_url: document.getElementById('poster_url').value
             };
 
             try {
@@ -165,12 +173,12 @@
                 let html = '<div style="display: flex; flex-direction: column; gap: 0.75rem;">';
                 films.forEach(film => {
                     html += `
-                        <div style="padding: 1rem; background: #f9fafb; border-radius: 8px; border-left: 4px solid var(--primary-color);">
+                        <div style="padding: 1rem; background: var(--cinema-card); border-radius: 8px; border-left: 4px solid var(--cinema-accent);">
                             <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 0.5rem;">
-                                <strong style="font-size: 1.1rem; color: var(--text-dark);">${film.title}</strong>
-                                <span style="background: var(--primary-color); color: white; padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.75rem;">ID: ${film.id}</span>
+                                <strong style="font-size: 1.1rem; color: var(--cinema-text);">${film.title}</strong>
+                                <span style="background: var(--cinema-accent); color: white; padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.75rem;">ID: ${film.id}</span>
                             </div>
-                            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.5rem; font-size: 0.9rem; color: var(--text-light);">
+                            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.5rem; font-size: 0.9rem; color: var(--cinema-text-dim);">
                                 <div>📅 ${film.year}</div>
                                 <div>🎭 ${film.genre}</div>
                                 <div>⏱️ ${film.duration} min</div>
