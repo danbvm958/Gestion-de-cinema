@@ -177,4 +177,4 @@ flask run --port 5001
 ## 👥 Auteurs
 
 Projet développé dans le cadre du cours de Python - CY Tech Ing1 GIA 2
-Dan Nicolas Ilann
+Dan Nicolas Ilann Boudria
