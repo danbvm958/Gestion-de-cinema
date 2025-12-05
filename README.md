@@ -38,7 +38,6 @@ Gestion-de-cinema/
 ├── seances.py          # Gestion des séances
 ├── salle.py            # Gestion des salles
 ├── recreate_db.py      # Script de création de la base de données
-├── update_db.py        # Script de mise à jour de la base
 ├── requirements.txt    # Dépendances Python
 ├── cinema.db           # Base de données SQLite (générée automatiquement)
 ├── static/
