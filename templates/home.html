@@ -155,7 +155,11 @@
         }
 
         function isSessionUser() {
-            return {{ 'true' if session.username else 'false' }};
+            {% if session.username %}
+            return true;
+            {% else %}
+            return false;
+            {% endif %}
         }
 
         let currentReservation = null;

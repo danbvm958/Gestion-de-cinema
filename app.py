@@ -226,14 +226,6 @@ def connection():
     """Affiche la page de connexion"""
     return render_template('login.html')
 
-# Route affichant le formulaire d'ajout de salle
-@app.route('/ajoutsalle')
-def ajout_salle():
-    """Affiche la page d'ajout de salle"""
-    return render_template('ajoutsalle.html')
-
-# Route removed - functionality integrated in home page
-
 # Route pour déconnecter l'utilisateur
 @app.route('/logout', methods=['POST'])
 def logout():
@@ -254,8 +246,12 @@ def reserve_seat():
         return jsonify({'message': 'ID de séance manquant.'}), 400
 
     seance_id = data['seance_id']
+    
     # int() convertit une chaîne de caractères en nombre entier
-    seats_requested = int(data.get('seats', 1))
+    try:
+        seats_requested = int(data.get('seats', 1))
+    except (ValueError, TypeError):
+        return jsonify({'message': 'Nombre de places invalide.'}), 400
     
     # Validation: entre 1 et 5 places maximum
     if seats_requested < 1 or seats_requested > 5:

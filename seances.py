@@ -102,7 +102,6 @@ def add_seance():
         return jsonify({'message': 'Accès refusé. Réservé aux administrateurs.'}), 403
     
     data = request.get_json()
-    print(data)
 
     if not data:
         return jsonify({'message': 'JSON manquant.'}), 400
@@ -112,7 +111,11 @@ def add_seance():
         if key not in data:
             return jsonify({'message': f"Champ manquant : {key}"}), 400
 
-    salle = data['salle']
+    try:
+        salle = int(data['salle'])
+    except (ValueError, TypeError):
+        return jsonify({'message': 'Numéro de salle invalide.'}), 400
+        
     if salle < 1 or salle > 5:
         return jsonify({'message': 'La salle doit être entre 1 et 5.'}), 400
 
